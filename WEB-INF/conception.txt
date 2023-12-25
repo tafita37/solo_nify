@@ -1,0 +1,66 @@
+Classes :
+	- Personne :
+		- String idPersonne
+		- String nomPersonne
+		- String prenomPersonne
+		- String emailPersonne
+		- String mdpPersonne
+		- Date dtnPersonne
+
+		- public void newPersonne(Connection con)
+		- public Consultation[] getAllConsultation(Connection con)
+		- public Traitement[] getAllTraitement(Connection con)
+
+	- Dent :
+		- int numeroDent
+		- String nomDent
+		- double coutReparation
+		- double coutRemplacement
+		- int reparationRemplacement
+
+		- public Dent findDentByNumeroDent(Connection con, String numeroDent)
+
+	- TypeSoin :
+		- String idTypeSoin
+		- String nomTypeSoin
+		- Dent[] priorite
+
+	- Consultation :
+		- String idConsultation
+		- TypeSoin choix
+		- Personne personne
+		- Date dateConsultation
+		- Dent[] dentAReparer
+		- Dent[] dentARemplacer
+		- double budgetPersonne
+		- int etatConsultation
+
+		- public void newConsultation(Connection con)
+		- public Dent[dentAReparer.length+dentARemplacer.length] getOrdreDeTraitement()
+		- public Dent[] getDentTraitable()
+		- public double getCoutTotalTabDent(Dent[] listeDents)
+		- public double getCoutTotalTraitement()
+		- public double getResteBudget()
+		- public static Consultation getConsultationById(Connection con, String valueId)
+		- public void terminerConsultation(Connection con)
+
+	- Traitement :
+		- String idTraitement
+		- Consultation consultation
+		- Dent dent
+		- double coutTraitement
+		- Date dateTraitement
+
+		- public Traitement getTraitementByConsultationAndDent(Connection con, String idConsultation, String numeroDent)
+		- public void newTraitement(Connection con)
+		- public void newTraitements(Connection con)
+
+Tables : 
+	- personne(id_personne, nom_personne, prenom_personne, email_personne, mdp_personne, dtn_personne)
+	- dent(numero_dent, nom_dent, cout_reparation, cout_remplacement)
+	- typeSoin(id_type_soin, nom_type_soin)
+	- priorite(id_type_soin, numero_dent, rang)
+	- consultation(idConsultation, id_type_soin, id_personne, date_consultation, budget_personne, etat_consultation)
+	- reparation(id_consultaiton, id_dent)
+	- remplacement(id_consultaiton, id_dent)
+	- traitement(id_traitement, id_consultation, id_dent, cout_traitement, date_traitement)
