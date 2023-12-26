@@ -1,18 +1,28 @@
 package model.soin;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import annotation.FieldMapping;
+import annotation.PrimaryKey;
+import annotation.Table;
+import database.ConnexionBdd;
 import model.dent.Dent;
 
+@Table(tableName="type_soin", idTable = "id_type_soin", prefixe = "TPS", sequence = "id_type_soin", nbNumerique = 6)
 public class TypeSoin {
+    @PrimaryKey
+    @FieldMapping(columnName = "id_type_soin")
     private String idTypeSoin;
+    @FieldMapping(columnName = "nom_type_soin")
     private String nomTypeSoin;
-    private Dent[] priorite;
 
     public TypeSoin() {}
 
-    public TypeSoin(String idTypeSoin, String nomTypeSoin, Dent[] priorite) throws Exception {
+    public TypeSoin(String idTypeSoin, String nomTypeSoin) throws Exception {
         setIdTypeSoin(idTypeSoin);
         setNomTypeSoin(nomTypeSoin);
-        setPriorite(priorite);
     }
 
     public String getIdTypeSoin() {
@@ -37,15 +47,75 @@ public class TypeSoin {
         this.nomTypeSoin = nomTypeSoin;
     }
 
-    public Dent[] getPriorite() {
-        return priorite;
+    public int countPriorite(Connection con)
+    throws Exception {
+        int result=0;
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        }
+        PreparedStatement preparedStatement=null;
+        ResultSet resultSet=null;
+        try {
+            String sql="select count(*) as nb from v_priorite_asc where id_type_soin=?";
+            preparedStatement=con.prepareStatement(sql);
+            preparedStatement.setString(1, this.getIdTypeSoin());
+            resultSet=preparedStatement.executeQuery();
+            while(resultSet.next()) {
+                result=resultSet.getInt("nb");
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(preparedStatement!=null) {
+                preparedStatement.close();
+            }
+            if(resultSet!=null) {
+                resultSet.close();
+            }
+            if(jAiOuvert) {
+                con.close();
+            }
+        }
+        return result;
     }
 
-    public void setPriorite(Dent[] priorite) throws Exception {
-        if (priorite == null) {
-            throw new Exception("Priorité ne peut pas être null");
+    public Dent[] getPriorite(Connection con)
+    throws Exception {
+        Dent[] result=null;
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
         }
-        this.priorite = priorite;
+        PreparedStatement preparedStatement=null;
+        ResultSet resultSet=null;
+        try {
+            result=new Dent[this.countPriorite(con)];
+            String sql="select*from v_priorite_asc where id_type_soin=?";
+            preparedStatement=con.prepareStatement(sql);
+            preparedStatement.setString(1, this.getIdTypeSoin());
+            resultSet=preparedStatement.executeQuery();
+            int i=0;
+            while(resultSet.next()) {
+                result[i]=new Dent(resultSet.getInt("numero_dent"), resultSet.getString("nom_dent"), resultSet.getDouble("cout_reparation"), resultSet.getDouble("cout_remplacement"));
+                i++;
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(preparedStatement!=null) {
+                preparedStatement.close();
+            }
+            if(resultSet!=null) {
+                resultSet.close();
+            }
+            if(jAiOuvert) {
+                con.close();
+            }
+        }
+        return result;
     }
 }
 

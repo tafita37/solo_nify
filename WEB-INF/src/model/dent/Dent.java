@@ -1,12 +1,31 @@
 package model.dent;
-import java.sql.Connection;
 
+import annotation.FieldMapping;
+import annotation.PrimaryKey;
+import annotation.Table;
+
+@Table(tableName="dent", idTable = "numero_dent", prefixe = "DEBT", sequence = "numero_dent", nbNumerique = 6)
 public class Dent {
+    @PrimaryKey
+    @FieldMapping(columnName = "numero_dent")
     private int numeroDent;
+    @FieldMapping(columnName = "nom_dent")
     private String nomDent;
+    @FieldMapping(columnName = "cout_reparation")
     private double coutReparation;
+    @FieldMapping(columnName = "cout_remplacement")
     private double coutRemplacement;
     private int reparationRemplacement;
+    
+    
+
+    public Dent(int numeroDent, String nomDent, double coutReparation, double coutRemplacement)
+    throws Exception {
+        setNumeroDent(numeroDent);
+        setNomDent(nomDent);
+        setCoutReparation(coutReparation);
+        setCoutRemplacement(coutRemplacement);
+    }
 
     public Dent() {}
 
@@ -74,9 +93,32 @@ public class Dent {
         this.reparationRemplacement = reparationRemplacement;
     }
 
-    public Dent findDentByNumeroDent(Connection con, String numeroDent)
-    throws Exception {
+    public double getCoutTraitement() {
+        if(this.getReparationRemplacement()==11) {
+            return this.getCoutReparation();
+        }
+        return this.getCoutRemplacement();
+    }
 
-        return null;
+    public String getTypeTraitement() {
+        if(this.getReparationRemplacement()==11) {
+            return "Reparation";
+        }
+        return "Remplacement";
+    }
+
+    public static double getCoutTotalTabDent(Dent[] listeDents) {
+        double result=0;
+        for(int i=0; i<listeDents.length; i++) {
+            result+=listeDents[i].getCoutTraitement();
+        }
+        return result;
+    }
+
+    public String getVraiNom() {
+        if(this.getNumeroDent()<=16) {
+            return this.getNomDent()+" du haut numero : "+this.getNumeroDent();
+        }
+        return this.getNomDent()+" du bas numero : "+this.getNumeroDent();
     }
 }

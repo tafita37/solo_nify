@@ -1,8 +1,12 @@
 package model.soin;
 
+import java.sql.Timestamp;
 import java.sql.Connection;
-import java.util.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
+import bdd.BddObject;
+import database.ConnexionBdd;
 import model.dent.Dent;
 
 public class Traitement {
@@ -10,12 +14,12 @@ public class Traitement {
     private Consultation consultation;
     private Dent dent;
     private double coutTraitement;
-    private Date dateTraitement;
+    private Timestamp dateTraitement;
 
     public Traitement(){
     }
 
-    public Traitement(String idTraitement, Consultation consultation, Dent dent, double coutTraitement, Date dateTraitement) throws Exception {
+    public Traitement(String idTraitement, Consultation consultation, Dent dent, double coutTraitement, Timestamp dateTraitement) throws Exception {
         setIdTraitement(idTraitement);
         setConsultation(consultation);
         setDent(dent);
@@ -56,6 +60,9 @@ public class Traitement {
         if(dent==null) {
             throw new Exception("Veuillez entrer une dent");
         }
+        if(!this.getConsultation().estATraiter(dent)) {
+            throw new Exception("Cette dent ne fait pas parti de la liste de traitement");
+        }
         this.dent = dent;
     }
 
@@ -71,11 +78,11 @@ public class Traitement {
         this.coutTraitement = coutTraitement;
     }
 
-    public Date getDateTraitement() {
+    public Timestamp getDateTraitement() {
         return dateTraitement;
     }
 
-    public void setDateTraitement(Date dateTraitement)
+    public void setDateTraitement(Timestamp dateTraitement)
     throws Exception {
         if(dateTraitement==null) {
             throw new Exception("Veuillez entrer une date de traitement");
@@ -83,9 +90,39 @@ public class Traitement {
         this.dateTraitement = dateTraitement;
     }
 
-    public Traitement getTraitementByConsultationAndDent(Connection con, String idConsultation, String numeroDent) {
-        // Implementation for getTraitementByConsultationAndDent method
-        return null;
+    public static Traitement getTraitementByConsultationAndDent(Connection con, String idConsultation, int numeroDent)
+    throws Exception {
+        Traitement result=null;
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        }
+        PreparedStatement preparedStatement=null;
+        ResultSet resultSet=null;
+        try {
+            String sql="select*from traitement where id_consultation=? and numero_dent=?";
+            preparedStatement=con.prepareStatement(sql);
+            preparedStatement.setInt(1, Integer.valueOf(idConsultation));
+            preparedStatement.setInt(2, numeroDent);
+            resultSet=preparedStatement.executeQuery();
+            while(resultSet.next()) {
+                result=new Traitement(resultSet.getString("id_traitement"), Consultation.getConsultationById(con, idConsultation), (Dent) BddObject.findById(con, Dent.class, String.valueOf(numeroDent), "postgres", "AnaTaf37", "nify"), resultSet.getDouble("cout_traitement"), resultSet.getTimestamp("date_traitement"));
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(preparedStatement!=null) {
+                preparedStatement.close();
+            }
+            if(resultSet!=null) {
+                resultSet.close();
+            }
+            if(jAiOuvert) {
+                con.close();
+            }
+        }
+        return result;
     }
 
     public void newTraitement(Connection con) {
