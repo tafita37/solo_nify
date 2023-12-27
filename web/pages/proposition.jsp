@@ -52,5 +52,9 @@
         %>
     </table>
     Budget : <% out.println(consultation.getBudgetPersonne()+" ar"); %>
+    <br>
+    Reste : <% out.println(request.getAttribute("resteBudget")+" ar"); %>
+    <br>
+    Total de traitement : <% out.println(request.getAttribute("coutTotal")+" ar"); %>
 </body>
 </html>

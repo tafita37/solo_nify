@@ -39,13 +39,19 @@ public class Soin_Controller {
         ModelView result=new ModelView();
         Connection con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
         try {
-            Dent[] dentAReparer=new Dent[dentReparer.length];
-            for(int i=0; i<dentAReparer.length; i++) {
-                dentAReparer[i]=(Dent) BddObject.findById(con, Dent.class, dentReparer[i], "postgres", "AnaTaf37", "nify");
+            Dent[] dentAReparer=null;
+            if(dentReparer!=null) {
+                dentAReparer=new Dent[dentReparer.length];
+                for(int i=0; i<dentAReparer.length; i++) {
+                    dentAReparer[i]=(Dent) BddObject.findById(con, Dent.class, dentReparer[i], "postgres", "AnaTaf37", "nify");
+                }
             }
-            Dent[] dentARemplacer=new Dent[dentReparer.length];
-            for(int i=0; i<dentARemplacer.length; i++) {
-                dentARemplacer[i]=(Dent) BddObject.findById(con, Dent.class, dentRemplacer[i], "postgres", "AnaTaf37", "nify");
+            Dent[] dentARemplacer=null;
+            if(dentRemplacer!=null) {
+                dentARemplacer=new Dent[dentRemplacer.length];
+                for(int i=0; i<dentARemplacer.length; i++) {
+                    dentARemplacer[i]=(Dent) BddObject.findById(con, Dent.class, dentRemplacer[i], "postgres", "AnaTaf37", "nify");
+                }
             }
             Consultation consultation=new Consultation((TypeSoin) BddObject.findById(con, TypeSoin.class, idTypeSoin, "postgres", "AnaTaf37", "nify"), (Personne) BddObject.findById(con, Personne.class, idPersonne, "postgres", "AnaTaf37", "nify"), Timestamp.valueOf(dateConsultation+" "+heureConsultation+":00"), dentAReparer, dentARemplacer, budget);
             consultation.newConsultation(con);
@@ -91,6 +97,8 @@ public class Soin_Controller {
             if(consultation!=null) {
                 result.addItem("dentTraitable", consultation.getDentTraitable(con));
                 result.addItem("consultation", consultation);
+                result.addItem("resteBudget", consultation.getResteBudget(con));
+                result.addItem("coutTotal", consultation.getCoutTotalTraitement(con));
             }
         } catch (Exception e) {
             e.printStackTrace();
