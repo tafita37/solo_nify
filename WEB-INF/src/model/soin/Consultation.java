@@ -111,6 +111,10 @@ public class Consultation {
                     }
                 }
             }
+        } else {
+            if(this.getDentAReparer()==null) {
+                throw new Exception("Vous devez reparer ou remplacer au moins une dent");
+            }
         }
         this.dentARemplacer = dentARemplacer;
     }
@@ -201,39 +205,41 @@ public class Consultation {
 
     public static void newReparationAndRemplacementConsultation(Connection con, Dent[] listeDents, int reparerOuRemplacer)
     throws Exception {
-        boolean jAiOuvert=false;
-        if(con==null) {
-            jAiOuvert=true;
-            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
-        }
-        PreparedStatement preparedStatement=null;
-        try {
-            Consultation lastConsultation=Consultation.getLastConsultation(con);
-            if(lastConsultation==null) {
-                throw new Exception("Veuillez d'abord faire une consultation");
+        if(listeDents!=null) {
+            boolean jAiOuvert=false;
+            if(con==null) {
+                jAiOuvert=true;
+                con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
             }
-            String tableName="";
-            if(reparerOuRemplacer==11) {
-                tableName="reparation";
-            } else {
-                tableName="remplacement";
-            }
-            String sql="insert into "+tableName+"(id_consultation, numero_dent) values(?, ?)";
-            preparedStatement=con.prepareStatement(sql);
-            for(int i=0; i<listeDents.length; i++) {
-                preparedStatement.setInt(1, Integer.valueOf(lastConsultation.getIdConsultation()));
-                preparedStatement.setInt(2, listeDents[i].getNumeroDent());
-                preparedStatement.addBatch();
-            }
-            preparedStatement.executeBatch();
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if(preparedStatement!=null) {
-                preparedStatement.close();
-            }
-            if(jAiOuvert) {
-                con.close();
+            PreparedStatement preparedStatement=null;
+            try {
+                Consultation lastConsultation=Consultation.getLastConsultation(con);
+                if(lastConsultation==null) {
+                    throw new Exception("Veuillez d'abord faire une consultation");
+                }
+                String tableName="";
+                if(reparerOuRemplacer==11) {
+                    tableName="reparation";
+                } else {
+                    tableName="remplacement";
+                }
+                String sql="insert into "+tableName+"(id_consultation, numero_dent) values(?, ?)";
+                preparedStatement=con.prepareStatement(sql);
+                for(int i=0; i<listeDents.length; i++) {
+                    preparedStatement.setInt(1, Integer.valueOf(lastConsultation.getIdConsultation()));
+                    preparedStatement.setInt(2, listeDents[i].getNumeroDent());
+                    preparedStatement.addBatch();
+                }
+                preparedStatement.executeBatch();
+            } catch (Exception e) {
+                throw e;
+            } finally {
+                if(preparedStatement!=null) {
+                    preparedStatement.close();
+                }
+                if(jAiOuvert) {
+                    con.close();
+                }
             }
         }
     }

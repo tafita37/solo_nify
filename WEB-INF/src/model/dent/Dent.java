@@ -110,7 +110,9 @@ public class Dent {
     public static double getCoutTotalTabDent(Dent[] listeDents) {
         double result=0;
         for(int i=0; i<listeDents.length; i++) {
-            result+=listeDents[i].getCoutTraitement();
+            if(listeDents[i]!=null) {
+                result+=listeDents[i].getCoutTraitement();
+            }
         }
         return result;
     }
