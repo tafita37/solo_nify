@@ -1,0 +1,80 @@
+Classes :
+	- Personne :
+		- String idPersonne
+		- String nomPersonne
+		- String prenomPersonne
+		- Date dateNaissance
+		- String emailPersonne
+		- String mdp
+
+		- public void newPersonne(Connection con)
+
+	- EtatDent :
+		- double niveauEtatDent
+		- String nomEtatDent
+
+	- Traitement :
+		- String idTraitement
+		- String nomTraitement
+		- EtatDent objectif
+		- double pas
+		- EtatDent debut
+		- EtatDent fin
+		- double prix
+
+		- public void newTraitement(Connection con)
+		- public static double sommePrix(Traitement[] listeTraitement)
+
+	- Dent :
+		- int numeroDent
+		- String nomDent
+		- int etat=10
+
+		- public Traitement[] getTraitementNecessaire()
+		- public double getCoutTotalTraitement()
+
+	- DentTraitement :
+		- Dent dent 
+		- Traitement traitement
+		- double prix
+
+	- TypeSoin :
+		- String idTypeSoin
+		- String nomTypeSoin
+
+		- Dent[] getPriorite(Connection con)
+
+	- Consultation :
+		- Personne personne
+		- Timestamp dateConsultation
+		- Dent[] listeDents
+		- double budget
+		- TypeSoin typeSoin
+
+		- public Dent[] ordonnerDentTraiter(Connection con)
+		- public void newConsultation(Connection con)
+		- public Dent[] getListeTraitable
+
+
+Tables :
+	- personne(id_personne, nom_personne, prenom_personne, date_naissance, email_personne, mdp_personne)
+	- etat_dent(niveau_etat_dent, nom_etat_dent)
+	- traitement(id_traitement, nom_traitement, id_objectif, pas, id_debut, id_fin)
+	- dent(numero_dent, nom_dent)
+	- dent_traitement(numero_dent, id_traitement, prix)
+	- type_soin(id_type_soin, nom_type_soin)
+	- consultation(id_consultation, id_personne, date_consultation, budget_personne, id_type_soin)
+	- consultation_traitement(id_consultation, numero_dent, niveau_etat_dent)
+
+SELECT *
+FROM v_dent_traitement_traitement
+WHERE 2 BETWEEN 
+    CASE 
+        WHEN id_debut <= id_fin THEN id_debut
+        ELSE id_fin
+    END
+    AND 
+    CASE 
+        WHEN id_debut <= id_fin THEN id_fin
+        ELSE id_debut
+    END;

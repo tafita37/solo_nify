@@ -13,16 +13,19 @@
     <title>Document</title>
 </head>
 <body>
+    Choix : <% out.println(consultation.getChoix().getNomTypeSoin()); %>
+    <br>
+    Budget : <% out.println(consultation.getBudgetPersonne()); %>
     <table border="1">
         <tr>
             <th>
-                Dent
+                Nom de la dent
             </th>
             <th>
-                Cout de traitement
+                Etat
             </th>
             <th>
-                Type de traitement
+                Details
             </th>
         </tr>
         <%
@@ -31,30 +34,20 @@
                     %>
                     <tr>
                         <td>
-                            <%
-                                out.println(listeDent[i].getVraiNom());
-                            %>
+                            <% out.println(listeDent[i].getVraiNom()); %>
                         </td>
                         <td>
-                            <%
-                                out.println(listeDent[i].getCoutTraitement());
-                            %>
+                            <% out.println(listeDent[i].getEtat().getNomEtatDent()); %>
                         </td>
                         <td>
-                            <%
-                                out.println(listeDent[i].getTypeTraitement());
-                            %>
+                            <a href=<% out.println("detailProposition.htm?id_consultation="+consultation.getIdConsultation()+"&&numero_dent="+listeDent[i].getNumeroDent()); %>>
+                                Details
+                            </a>
                         </td>
                     </tr>
-                    
                 <% }
             }
         %>
     </table>
-    Budget : <% out.println(consultation.getBudgetPersonne()+" ar"); %>
-    <br>
-    Reste : <% out.println(request.getAttribute("resteBudget")+" ar"); %>
-    <br>
-    Total de traitement : <% out.println(request.getAttribute("coutTotal")+" ar"); %>
 </body>
 </html>

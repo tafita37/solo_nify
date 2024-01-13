@@ -2,6 +2,7 @@ package controller.soin;
 
 import java.sql.Connection;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 import annotation.DefaultParameter;
 import annotation.Parameters;
@@ -9,6 +10,7 @@ import annotation.Url;
 import bdd.BddObject;
 import database.ConnexionBdd;
 import model.dent.Dent;
+import model.dent.EtatDent;
 import model.people.Personne;
 import model.soin.Consultation;
 import model.soin.TypeSoin;
@@ -24,6 +26,25 @@ public class Soin_Controller {
             result.addItem("allTypeSoin", BddObject.selectAllFromBdd(con, TypeSoin.class, "postgres", "AnaTaf37", "nify"));
             result.addItem("allPersonne", BddObject.selectAllFromBdd(con, Personne.class, "postgres", "AnaTaf37", "nify"));
             result.addItem("allDent", BddObject.selectAllFromBdd(con, Dent.class, "postgres", "AnaTaf37", "nify"));
+            result.addItem("allEtatDents", BddObject.selectAllFromBdd(con, EtatDent.class, "postgres", "AnaTaf37", "nify"));
+        } catch (Exception e) {
+            return e.getMessage();
+        } finally {
+            con.close();
+        }
+        return result;
+    }
+
+    @Url(link = "formSoinAlea.htm")
+    public Object formSoinAlea()
+    throws Exception {
+        ModelView result=new ModelView("web/pages/formSoinAlea.jsp");
+        Connection con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        try {
+            result.addItem("allTypeSoin", BddObject.selectAllFromBdd(con, TypeSoin.class, "postgres", "AnaTaf37", "nify"));
+            result.addItem("allPersonne", BddObject.selectAllFromBdd(con, Personne.class, "postgres", "AnaTaf37", "nify"));
+            result.addItem("allDent", BddObject.selectAllFromBdd(con, Dent.class, "postgres", "AnaTaf37", "nify"));
+            result.addItem("allEtatDents", BddObject.selectAllFromBdd(con, EtatDent.class, "postgres", "AnaTaf37", "nify"));
         } catch (Exception e) {
             return e.getMessage();
         } finally {
@@ -33,29 +54,66 @@ public class Soin_Controller {
     }
 
     @Url(link = "traitementNewConsultation.htm")
-    @Parameters(args = {"id_type_soin", "date_consultation", "heure_consultation", "id_personne", "dent_reparer", "dent_remplacer", "budget"})
-    public Object createConsultation(String idTypeSoin, String dateConsultation, String heureConsultation, String idPersonne, String[] dentReparer, String[] dentRemplacer, double budget)
+    @Parameters(args = {"id_type_soin", "date_consultation", "heure_consultation", "id_personne", "note", "budget", "numero_dent"})
+    public Object createConsultation(String idTypeSoin, String dateConsultation, String heureConsultation, String idPersonne, int[] note, double budget, int[] numeroDent)
     throws Exception {
         ModelView result=new ModelView();
         Connection con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
         try {
-            Dent[] dentAReparer=null;
-            if(dentReparer!=null) {
-                dentAReparer=new Dent[dentReparer.length];
-                for(int i=0; i<dentAReparer.length; i++) {
-                    dentAReparer[i]=(Dent) BddObject.findById(con, Dent.class, dentReparer[i], "postgres", "AnaTaf37", "nify");
-                }
+            if(note.length!=numeroDent.length) {
+                throw new Exception("Il n'y a pas le meme nombre de dent que de note");
             }
-            Dent[] dentARemplacer=null;
-            if(dentRemplacer!=null) {
-                dentARemplacer=new Dent[dentRemplacer.length];
-                for(int i=0; i<dentARemplacer.length; i++) {
-                    dentARemplacer[i]=(Dent) BddObject.findById(con, Dent.class, dentRemplacer[i], "postgres", "AnaTaf37", "nify");
-                }
+            Dent[] listeDent=new Dent[note.length];
+            for(int i=0; i<note.length; i++) {
+                listeDent[i]=(Dent) BddObject.findById(con, Dent.class, String.valueOf(numeroDent[i]), "postgres", "AnaTaf37", "nify");
+                listeDent[i].setEtat((EtatDent) BddObject.findById(con, EtatDent.class, String.valueOf(note[i]), "postgres", "AnaTaf37", "nify"));
             }
-            Consultation consultation=new Consultation((TypeSoin) BddObject.findById(con, TypeSoin.class, idTypeSoin, "postgres", "AnaTaf37", "nify"), (Personne) BddObject.findById(con, Personne.class, idPersonne, "postgres", "AnaTaf37", "nify"), Timestamp.valueOf(dateConsultation+" "+heureConsultation+":00"), dentAReparer, dentARemplacer, budget);
+            Consultation consultation=new Consultation(con, idTypeSoin, idPersonne, Timestamp.valueOf(dateConsultation+" "+heureConsultation+":00"), listeDent, budget);
             consultation.newConsultation(con);
             result.setUrlRedirect("formSoin.htm");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e;
+        } finally {
+            con.close();
+        }
+        return result;
+    }
+
+    @Url(link = "traitementNewConsultationAlea.htm")
+    @Parameters(args = {"id_type_soin", "date_consultation", "heure_consultation", "id_personne", "note", "budget", "numero_dent"})
+    public Object createConsultationAlea(String idTypeSoin, String dateConsultation, String heureConsultation, String idPersonne, String note, double budget, String numeroDent)
+    throws Exception {
+        ModelView result=new ModelView();
+        Connection con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        try {
+            ArrayList<Dent> listeDent=new ArrayList<Dent>();
+            if(numeroDent.contains("-")&&numeroDent.contains(";")) {
+                throw new Exception("ca contient les deux separateurs");
+            }
+            String[] listeNote=note.split(";");
+            if(numeroDent.contains("-")) {
+                String[] listeIdDent=numeroDent.split("-");
+                if(listeIdDent.length!=2) {
+                    throw new Exception("Il n'y a pas de bornes");
+                }
+                listeDent=Dent.geListeDentInIntervalle(con, listeIdDent[0], listeIdDent[1]);
+                for(int i=0; i<listeDent.size(); i++) {
+                    listeDent.get(i).setEtat((EtatDent) BddObject.findById(con, EtatDent.class, note, "postgres", "AnaTaf37", "nify"));
+                }
+            } else if(numeroDent.contains(";")) {
+                String[] listeIdDent=numeroDent.split(";");
+                if(listeIdDent.length!=listeNote.length) {
+                    throw new Exception("Il n'y a pas le meme nombre");
+                }
+                for(int i=0; i<listeIdDent.length; i++) {
+                    listeDent.add((Dent) BddObject.findById(con, Dent.class, listeIdDent[i], "postgres", "AnaTaf37", "nify"));
+                    listeDent.get(i).setEtat((EtatDent) BddObject.findById(con, EtatDent.class, listeNote[i], "postgres", "AnaTaf37", "nify"));
+                }
+            }
+            Consultation consultation=new Consultation(con, idTypeSoin, idPersonne, Timestamp.valueOf(dateConsultation+" "+heureConsultation+":00"), listeDent, budget);
+            consultation.newConsultation(con);
+            result.setUrlRedirect("formSoinAlea.htm");
         } catch (Exception e) {
             e.printStackTrace();
             return e;
@@ -73,9 +131,7 @@ public class Soin_Controller {
         Connection con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
         try {
             Personne personne=(Personne) BddObject.findById(con, Personne.class, idPersonne, "postgres", "AnaTaf37", "nify");
-            if(personne!=null) {
-                result.addItem("listeConsultation", personne.getAllConsultationOfPersonne(con));
-            }
+            result.addItem("listeConsultation", personne.getAllConsultationOfPersonne(con));
             result.addItem("allPersonne", BddObject.selectAllFromBdd(con, Personne.class, "postgres", "AnaTaf37", "nify"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -93,12 +149,30 @@ public class Soin_Controller {
         ModelView result=new ModelView("web/pages/proposition.jsp");
         Connection con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
         try {
-            Consultation consultation=Consultation.getConsultationById(con, idConsultation);
-            if(consultation!=null) {
-                result.addItem("dentTraitable", consultation.getDentTraitable(con));
-                result.addItem("consultation", consultation);
-                result.addItem("resteBudget", consultation.getResteBudget(con));
-                result.addItem("coutTotal", consultation.getCoutTotalTraitement(con));
+            Consultation consultation=Consultation.getLastConsultationById(con, idConsultation);
+            result.addItem("consultation", consultation);
+            result.addItem("dentTraitable", consultation.getListeTraitable(con));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e;
+        } finally {
+            con.close();
+        }
+        return result;
+    }
+
+    @Url(link = "detailProposition.htm")
+    @Parameters(args = {"id_consultation", "numero_dent"})
+    public Object getDetailProposition(String idConsultation, int numeroDent)
+    throws Exception {
+        ModelView result=new ModelView("web/pages/detailProposition.jsp");
+        Connection con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        try {
+            Consultation consultation=Consultation.getLastConsultationById(con, idConsultation);
+            Dent dent=consultation.getCorrespondingDent(con, numeroDent);
+            if(dent!=null) {
+                result.addItem("dent", dent);
+                result.addItem("traitements", dent.getListeTraitement(con));
             }
         } catch (Exception e) {
             e.printStackTrace();

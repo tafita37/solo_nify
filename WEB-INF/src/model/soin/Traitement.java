@@ -1,136 +1,136 @@
 package model.soin;
 
-import java.sql.Timestamp;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.ArrayList;
 
 import bdd.BddObject;
 import database.ConnexionBdd;
-import model.dent.Dent;
+import model.dent.EtatDent;
 
 public class Traitement {
-    private String idTraitement;
-    private Consultation consultation;
-    private Dent dent;
-    private double coutTraitement;
-    private Timestamp dateTraitement;
-
-    public Traitement(){
-    }
-
-    public Traitement(String idTraitement, Consultation consultation, Dent dent, double coutTraitement, Timestamp dateTraitement) throws Exception {
-        setIdTraitement(idTraitement);
-        setConsultation(consultation);
-        setDent(dent);
-        setCoutTraitement(coutTraitement);
-        setDateTraitement(dateTraitement);
-    }
-
-    public String getIdTraitement() {
-        return idTraitement;
-    }
-
-    public void setIdTraitement(String idTraitement)
-    throws Exception {
-        if(idTraitement==null||idTraitement.length()==0) {
-            throw new Exception("Veuillez entrer un id de traitement");
-        }
+    String idTraitement;
+    String nomTraitement;
+    EtatDent objectif;
+    int pas;
+    EtatDent debut;
+    EtatDent fin;
+    double prix;
+    EtatDent etatActuelle;
+    public Traitement(String idTraitement, String nomTraitement, EtatDent objectif, int pas, EtatDent debut,
+            EtatDent fin) {
         this.idTraitement = idTraitement;
+        this.nomTraitement = nomTraitement;
+        this.objectif = objectif;
+        this.pas = pas;
+        this.debut = debut;
+        this.fin = fin;
     }
-
-    public Consultation getConsultation() {
-        return consultation;
+    public Traitement(String idTraitement, String nomTraitement, EtatDent objectif, int pas, EtatDent debut,
+            EtatDent fin, double prix) {
+        this.idTraitement = idTraitement;
+        this.nomTraitement = nomTraitement;
+        this.objectif = objectif;
+        this.pas = pas;
+        this.debut = debut;
+        this.fin = fin;
+        this.prix = prix;
     }
-
-    public void setConsultation(Consultation consultation)
+    public Traitement(Connection con, String idTraitement, String nomTraitement, int id_objectif, int pas, int id_debut, int id_fin, double prix)
     throws Exception {
-        if(consultation==null) {
-            throw new Exception("Veuillez entrer une consultation");
-        }
-        this.consultation = consultation;
-    }
-
-    public Dent getDent() {
-        return dent;
-    }
-
-    public void setDent(Dent dent)
-    throws Exception {
-        if(dent==null) {
-            throw new Exception("Veuillez entrer une dent");
-        }
-        if(!this.getConsultation().estATraiter(dent)) {
-            throw new Exception("Cette dent ne fait pas parti de la liste de traitement");
-        }
-        this.dent = dent;
-    }
-
-    public double getCoutTraitement() {
-        return coutTraitement;
-    }
-
-    public void setCoutTraitement(double coutTraitement)
-    throws Exception {
-        if(coutTraitement<=0) {
-            throw new Exception("Veuillez entrer un cout de traitement plus grand");
-        }
-        this.coutTraitement = coutTraitement;
-    }
-
-    public Timestamp getDateTraitement() {
-        return dateTraitement;
-    }
-
-    public void setDateTraitement(Timestamp dateTraitement)
-    throws Exception {
-        if(dateTraitement==null) {
-            throw new Exception("Veuillez entrer une date de traitement");
-        }
-        this.dateTraitement = dateTraitement;
-    }
-
-    public static Traitement getTraitementByConsultationAndDent(Connection con, String idConsultation, int numeroDent)
-    throws Exception {
-        Traitement result=null;
         boolean jAiOuvert=false;
         if(con==null) {
             jAiOuvert=true;
             con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
         }
-        PreparedStatement preparedStatement=null;
-        ResultSet resultSet=null;
         try {
-            String sql="select*from traitement where id_consultation=? and numero_dent=?";
-            preparedStatement=con.prepareStatement(sql);
-            preparedStatement.setInt(1, Integer.valueOf(idConsultation));
-            preparedStatement.setInt(2, numeroDent);
-            resultSet=preparedStatement.executeQuery();
-            while(resultSet.next()) {
-                result=new Traitement(resultSet.getString("id_traitement"), Consultation.getConsultationById(con, idConsultation), (Dent) BddObject.findById(con, Dent.class, String.valueOf(numeroDent), "postgres", "AnaTaf37", "nify"), resultSet.getDouble("cout_traitement"), resultSet.getTimestamp("date_traitement"));
-            }
+            this.idTraitement = idTraitement;
+            this.nomTraitement = nomTraitement;
+            this.objectif = (EtatDent) BddObject.findById(con, EtatDent.class, String.valueOf(id_objectif), "postgres", "AnaTaf37", "nify");
+            this.pas = pas;
+            this.debut = (EtatDent) BddObject.findById(con, EtatDent.class, String.valueOf(id_debut), "postgres", "AnaTaf37", "nify");;
+            this.fin = (EtatDent) BddObject.findById(con, EtatDent.class, String.valueOf(id_fin), "postgres", "AnaTaf37", "nify");;
+            this.prix = prix;
         } catch (Exception e) {
             throw e;
         } finally {
-            if(preparedStatement!=null) {
-                preparedStatement.close();
-            }
-            if(resultSet!=null) {
-                resultSet.close();
-            }
             if(jAiOuvert) {
                 con.close();
             }
         }
-        return result;
+    }
+    public Traitement() {
+    }
+    public String getIdTraitement() {
+        return idTraitement;
+    }
+    public void setIdTraitement(String idTraitement) {
+        this.idTraitement = idTraitement;
+    }
+    public String getNomTraitement() {
+        return nomTraitement;
+    }
+    public void setNomTraitement(String nomTraitement) {
+        this.nomTraitement = nomTraitement;
+    }
+    public EtatDent getObjectif() {
+        return objectif;
+    }
+    public void setObjectif(EtatDent objectif) {
+        this.objectif = objectif;
+    }
+    public int getPas() {
+        return pas;
+    }
+    public void setPas(int pas) {
+        this.pas = pas;
+    }
+    public EtatDent getDebut() {
+        return debut;
+    }
+    public void setDebut(EtatDent debut) {
+        this.debut = debut;
+    }
+    public EtatDent getFin() {
+        return fin;
+    }
+    public void setFin(EtatDent fin) {
+        this.fin = fin;
+    }
+    public double getPrix() {
+        return prix;
+    }
+    public void setPrix(double prix) {
+        this.prix = prix;
     }
 
     public void newTraitement(Connection con) {
-        // Implementation for newTraitement method
+
     }
 
-    public void newTraitements(Connection con) {
-        // Implementation for newTraitements method
+    public static double sommePrix(ArrayList<Traitement> listeTraitement) {
+        double result=0;
+        for(int i=0; i<listeTraitement.size(); i++) {
+            result+=listeTraitement.get(i).getPrix();
+        }
+        return result;
+    }
+
+    public EtatDent getMaxEtat() {
+        if(this.getPas()>0) {
+            if(this.getDebut().compareToByNiveau(this.getFin())>=0) {
+                return this.getDebut();
+            }
+            return this.getFin();
+        }
+        if(this.getDebut().compareToByNiveau(this.getFin())<=0) {
+            return this.getDebut();
+        }
+        return this.getFin();
+    }
+    public EtatDent getEtatActuelle() {
+        return etatActuelle;
+    }
+    public void setEtatActuelle(EtatDent etatActuelle) {
+        this.etatActuelle = etatActuelle;
     }
 }
-

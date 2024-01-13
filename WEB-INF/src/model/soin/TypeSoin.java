@@ -16,7 +16,7 @@ public class TypeSoin {
     @FieldMapping(columnName = "id_type_soin")
     private String idTypeSoin;
     @FieldMapping(columnName = "nom_type_soin")
-    private String nomTypeSoin;
+    private String nomTypeSoin;;
 
     public TypeSoin() {}
 
@@ -96,10 +96,11 @@ public class TypeSoin {
             String sql="select*from v_priorite_asc where id_type_soin=?";
             preparedStatement=con.prepareStatement(sql);
             preparedStatement.setString(1, this.getIdTypeSoin());
+            System.out.println(preparedStatement.toString());
             resultSet=preparedStatement.executeQuery();
             int i=0;
             while(resultSet.next()) {
-                result[i]=new Dent(resultSet.getInt("numero_dent"), resultSet.getString("nom_dent"), resultSet.getDouble("cout_reparation"), resultSet.getDouble("cout_remplacement"));
+                result[i]=new Dent(resultSet.getInt("numero_dent"), resultSet.getString("nom_dent"));
                 i++;
             }
         } catch (Exception e) {

@@ -1,7 +1,6 @@
 <%@page import="model.soin.*"%>
 <%@page import="model.people.*"%>
 <%@page import="model.dent.*"%>
-
 <%
     Object[] listeTypeSoin=(Object[]) request.getAttribute("allTypeSoin");
     Object[] listePersonne=(Object[]) request.getAttribute("allPersonne");
@@ -21,7 +20,7 @@
     <h2>
         Formulaire de consultation
     </h2>
-    <form action="traitementNewConsultation.htm" method="post">
+    <form action="traitementNewConsultationAlea.htm" method="post">
         <select name="id_type_soin" id="">
             <option value="">
                 Choisissez votre type de soin
@@ -59,29 +58,9 @@
         <h2>
             Etat des dents
         </h2>
-        <%
-            for(int i=0; i<listeDent.length; i++) {
-                Dent dent = (Dent) listeDent[i];
-                out.println(dent.getVraiNom());
-                %>
-                <select name="note" id="">
-                    <option value="">
-                        Etat de la dent
-                    </option>
-                    <%
-                        for(int j=0; j<listeEtatDent.length; j++) {
-                            EtatDent etatDent=(EtatDent) listeEtatDent[j];
-                            %>
-                            <option value=<% out.println(etatDent.getNiveauEtatDent()); %>>
-                                <% out.println(etatDent.getNomEtatDent()); %>
-                            </option>
-                        <% }
-                    %>
-                </select> 
-                <input type="hidden" name="numero_dent" value=<% out.println(dent.getNumeroDent()); %>>
-                <br>
-            <% }
-        %>
+        <input type="text" name="numero_dent" id="" placeholder="Dents">
+        <br>
+        <input type="text" name="note" id="" placeholder="Etat">
         <br>
         <input type="number" name="budget" id="" placeholder="Budget">
         <br>
