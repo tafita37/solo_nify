@@ -169,7 +169,7 @@ public class Personne {
             resultSet=preparedStatement.executeQuery();
             int i=0;
             while(resultSet.next()) {
-                result[i]=new Consultation(resultSet.getString("id_consultation"), (TypeSoin) BddObject.findById(con, TypeSoin.class, resultSet.getString("id_type_soin"), "postgres", "AnaTaf37", "nify"), this, resultSet.getTimestamp("date_consultation"), Consultation.getListeDentATraiterByIdConsultation(con, resultSet.getString("id_consultation"), 11), Consultation.getListeDentATraiterByIdConsultation(con, resultSet.getString("id_consultation"), 21), resultSet.getDouble("budget_personne"), resultSet.getInt("etat_consultation"));
+                result[i]=new Consultation(con, resultSet.getString("id_consultation"), resultSet.getString("id_type_soin"), resultSet.getString("id_personne"), resultSet.getTimestamp("date_consultation"), Consultation.getListeDentATraiterByIdConsultation(con, resultSet.getString("id_consultation")), resultSet.getDouble("budget_personne"), resultSet.getInt("etat_consultation"));
                 i++;
             }
         } catch (Exception e) {

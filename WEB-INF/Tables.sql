@@ -15,13 +15,35 @@
             mdp_personne varchar(20), 
             dtn_personne date
         );
+
+    -- Etat de dent
+        create table etat_dent(
+            niveau_etat_dent serial primary key, 
+            nom_etat_dent varchar(30)
+        );
     
     -- Dent
         create table dent(
             numero_dent serial primary key, 
-            nom_dent varchar(50), 
-            cout_reparation double precision, 
-            cout_remplacement double precision
+            nom_dent varchar(50)
+        );
+
+    -- Traitement
+        create table traitement(
+            id_traitement serial primary key, 
+            nom_traitement varchar(30), 
+            id_objectif int references etat_dent(niveau_etat_dent), 
+            pas int, 
+            id_debut int references etat_dent(niveau_etat_dent), 
+            id_fin int references etat_dent(niveau_etat_dent)
+        );
+
+    -- Dent et traitement et prix
+	    create table dent_traitement(
+            numero_dent int references dent(numero_dent), 
+            id_traitement int references traitement(id_traitement), 
+            prix double precision,
+            primary key(numero_dent, id_traitement)
         );
 
     -- Type de soin
@@ -47,26 +69,10 @@
             budget_personne double precision, 
             etat_consultation int
         );
-
-    -- Reparation
-        create table reparation(
-            id_consultation int references consultation(id_consultation), 
-            numero_dent int references dent(numero_dent),
-            primary key(id_consultation, numero_dent)
-        );
-
-    -- Remplacement
-        create table remplacement(
-            id_consultation int references consultation(id_consultation), 
-            numero_dent int references dent(numero_dent),
-            primary key(id_consultation, numero_dent)
-        );
-
-    -- Traitement
-        create table traitement(
-            id_traitement serial primary key, 
+    
+    -- Consultation et traitement
+	    create table consultation_traitement(
             id_consultation int references consultation(id_consultation), 
             numero_dent int references dent(numero_dent), 
-            cout_traitement double precision, 
-            date_traitement date
+            niveau_etat_dent int references etat_dent(niveau_etat_dent)
         );

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 import bdd.BddObject;
 import database.ConnexionBdd;
@@ -15,33 +16,92 @@ public class Consultation {
     private TypeSoin choix;
     private Personne personne;
     private Timestamp dateConsultation;
-    private Dent[] dentAReparer;
-    private Dent[] dentARemplacer;
+    private Dent[] listeDents;
     private double budgetPersonne;
     private int etatConsultation;
 
-    public Consultation(TypeSoin choix, Personne personne, Timestamp dateConsultation, Dent[] dentAReparer, Dent[] dentARemplacer, double budgetPersonne)
+    public Consultation(String idConsultation, TypeSoin choix, Personne personne, Timestamp dateConsultation, Dent[] listeDents, double budgetPersonne, int etatConsultation) {
+        this.idConsultation = idConsultation;
+        this.choix = choix;
+        this.personne = personne;
+        this.dateConsultation = dateConsultation;
+        this.listeDents = listeDents;
+        this.budgetPersonne = budgetPersonne;
+        this.etatConsultation = etatConsultation;
+    }
+
+    public Consultation(Connection con, String idTypeSoin, String idPersonne, Timestamp dateConsultation, Dent[] listeDents, double budgetPersonne)
     throws Exception {
-        setChoix(choix);
-        setPersonne(personne);
-        setDateConsultation(dateConsultation);
-        setDentAReparer(dentAReparer);
-        setDentARemplacer(dentARemplacer);
-        setBudgetPersonne(budgetPersonne);
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        }
+        try {
+            this.choix = (TypeSoin) BddObject.findById(con, TypeSoin.class, idTypeSoin, "postgres", "AnaTaf37", "nify");
+            this.personne = (Personne) BddObject.findById(con, Personne.class, idPersonne, "postgres", "AnaTaf37", "nify");;
+            this.dateConsultation = dateConsultation;
+            this.listeDents = listeDents;
+            this.budgetPersonne = budgetPersonne;     
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(jAiOuvert) {
+                con.close();
+            }
+        }
+    }
+
+    public Consultation(Connection con, String idConsultation, String idTypeSoin, String idPersonne, Timestamp dateConsultation, Dent[] listeDents, double budgetPersonne, int etatConsultation)
+    throws Exception {
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        }
+        try {
+            this.idConsultation = idConsultation;
+            this.choix = (TypeSoin) BddObject.findById(con, TypeSoin.class, idTypeSoin, "postgres", "AnaTaf37", "nify");
+            this.personne = (Personne) BddObject.findById(con, Personne.class, idPersonne, "postgres", "AnaTaf37", "nify");;
+            this.dateConsultation = dateConsultation;
+            this.listeDents = listeDents;
+            this.budgetPersonne = budgetPersonne;
+            this.etatConsultation = etatConsultation;        
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(jAiOuvert) {
+                con.close();
+            }
+        }
+    }
+
+    public Consultation(Connection con, String idTypeSoin, String idPersonne, Timestamp dateConsultation, ArrayList<Dent> listeDents, double budgetPersonne)
+    throws Exception {
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        }
+        try {
+            this.choix = (TypeSoin) BddObject.findById(con, TypeSoin.class, idTypeSoin, "postgres", "AnaTaf37", "nify");
+            this.personne = (Personne) BddObject.findById(con, Personne.class, idPersonne, "postgres", "AnaTaf37", "nify");;
+            this.dateConsultation = dateConsultation;
+            this.listeDents = new Dent[listeDents.size()];
+            for(int i=0; i<listeDents.size(); i++) {
+                this.listeDents[i]=listeDents.get(i);
+            }
+            this.budgetPersonne = budgetPersonne;        
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(jAiOuvert) {
+                con.close();
+            }
+        }
     }
 
     public Consultation() {}
-
-    public Consultation(String idConsultation, TypeSoin choix, Personne personne, Timestamp dateConsultation, Dent[] dentAReparer, Dent[] dentARemplacer, double budgetPersonne, int etatConsultation) throws Exception {
-        setIdConsultation(idConsultation);
-        setChoix(choix);
-        setPersonne(personne);
-        setDateConsultation(dateConsultation);
-        setDentAReparer(dentAReparer);
-        setDentARemplacer(dentARemplacer);
-        setBudgetPersonne(budgetPersonne);
-        setEtatConsultation(etatConsultation);
-    }
 
     public String getIdConsultation() {
         return idConsultation;
@@ -85,38 +145,6 @@ public class Consultation {
             throw new Exception("Date Consultation ne peut pas être null");
         }
         this.dateConsultation = dateConsultation;
-    }
-
-    public Dent[] getDentAReparer() {
-        return dentAReparer;
-    }
-
-    public void setDentAReparer(Dent[] dentAReparer) throws Exception {
-        this.dentAReparer = dentAReparer;
-    }
-
-    public Dent[] getDentARemplacer() {
-        return dentARemplacer;
-    }
-
-    public void setDentARemplacer(Dent[] dentARemplacer) throws Exception {
-        if(dentARemplacer!=null) {
-            for(int i=0; i<dentARemplacer.length; i++) {
-                if(this.getDentAReparer()==null) {
-                    break;
-                }
-                for(int j=0; j<this.getDentAReparer().length; j++) {
-                    if(dentARemplacer[i].getNumeroDent()==this.getDentAReparer()[j].getNumeroDent()) {
-                        throw new Exception("Vous ne pouvez pas reparer et remplacer "+this.getDentAReparer()[j].getNomDent());
-                    }
-                }
-            }
-        } else {
-            if(this.getDentAReparer()==null) {
-                throw new Exception("Vous devez reparer ou remplacer au moins une dent");
-            }
-        }
-        this.dentARemplacer = dentARemplacer;
     }
 
     public double getBudgetPersonne() {
@@ -170,6 +198,112 @@ public class Consultation {
         }
     }
 
+    public static int countListeDentATraiterByIdConsultation(Connection con, String idConsultation)
+    throws Exception {
+        int result=0;
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        }
+        PreparedStatement preparedStatement=null;
+        ResultSet resultSet=null;
+        try {
+            String sql="select count(*) as nb from v_dent_abimer where id_consultation=?";
+            preparedStatement=con.prepareStatement(sql);
+            preparedStatement.setInt(1, Integer.valueOf(idConsultation));
+            resultSet=preparedStatement.executeQuery();
+            while(resultSet.next()) {
+                result=resultSet.getInt("nb");
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(preparedStatement!=null) {
+                preparedStatement.close();
+            }
+            if(resultSet!=null) {
+                resultSet.close();
+            }
+            if(jAiOuvert) {
+                con.close();
+            }
+        }
+        return result;
+    }
+
+    public static Dent[] getListeDentATraiterByIdConsultation(Connection con, String idConsultation)
+    throws Exception {
+        Dent[] result=null;
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        }
+        result=new Dent[Consultation.countListeDentATraiterByIdConsultation(con, idConsultation)];
+        PreparedStatement preparedStatement=null;
+        ResultSet resultSet=null;
+        try {
+            String sql="select*from v_dent_abimer where id_consultation=?";
+            preparedStatement=con.prepareStatement(sql);
+            preparedStatement.setInt(1, Integer.valueOf(idConsultation));
+            resultSet=preparedStatement.executeQuery();
+            int i=0;
+            while(resultSet.next()) {
+                result[i]=new Dent(con, resultSet.getInt("numero_dent"), resultSet.getString("nom_dent"), resultSet.getInt("niveau_etat_dent"));
+                System.out.println("niveau : "+resultSet.getInt("niveau_etat_dent"));
+                i++;
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(preparedStatement!=null) {
+                preparedStatement.close();
+            }
+            if(resultSet!=null) {
+                resultSet.close();
+            }
+            if(jAiOuvert) {
+                con.close();
+            }
+        }
+        return result;
+    }
+
+    public static Consultation getLastConsultationById(Connection con, String idConsultation)
+    throws Exception {
+        Consultation result=null;
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        }
+        PreparedStatement preparedStatement=null;
+        ResultSet resultSet=null;
+        try {
+            String sql="select*from consultation where id_consultation=?";
+            preparedStatement=con.prepareStatement(sql);
+            preparedStatement.setInt(1, Integer.valueOf(idConsultation));
+            resultSet=preparedStatement.executeQuery();
+            while(resultSet.next()) {
+                result=new Consultation(con, resultSet.getString("id_consultation"), resultSet.getString("id_type_soin"), resultSet.getString("id_personne"), resultSet.getTimestamp("date_consultation"), Consultation.getListeDentATraiterByIdConsultation(con, resultSet.getString("id_consultation")), resultSet.getDouble("budget_personne"), resultSet.getInt("etat_consultation"));
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(preparedStatement!=null) {
+                preparedStatement.close();
+            }
+            if(resultSet!=null) {
+                resultSet.close();
+            }
+            if(jAiOuvert) {
+                con.close();
+            }
+        }
+        return result;
+    }
+
     public static Consultation getLastConsultation(Connection con)
     throws Exception {
         Consultation result=null;
@@ -185,7 +319,7 @@ public class Consultation {
             preparedStatement=con.prepareStatement(sql);
             resultSet=preparedStatement.executeQuery();
             while(resultSet.next()) {
-                result=new Consultation(resultSet.getString("id_consultation"), (TypeSoin) BddObject.findById(con, TypeSoin.class, resultSet.getString("id_type_soin"), "postgres", "AnaTaf37", "nify"), (Personne) BddObject.findById(con, Personne.class, resultSet.getString("id_personne"), "postgres", "AnaTaf37", "nify"), resultSet.getTimestamp("date_consultation"), Consultation.getListeDentATraiterByIdConsultation(con, resultSet.getString("id_consultation"), 11), Consultation.getListeDentATraiterByIdConsultation(con, resultSet.getString("id_consultation"), 21), resultSet.getDouble("budget_personne"), resultSet.getInt("etat_consultation"));
+                result=new Consultation(con, resultSet.getString("id_consultation"), resultSet.getString("id_type_soin"), resultSet.getString("id_personne"), resultSet.getTimestamp("date_consultation"), Consultation.getListeDentATraiterByIdConsultation(con, resultSet.getString("id_consultation")), resultSet.getDouble("budget_personne"), resultSet.getInt("etat_consultation"));
             }
         } catch (Exception e) {
             throw e;
@@ -203,43 +337,33 @@ public class Consultation {
         return result;
     }
 
-    public static void newReparationAndRemplacementConsultation(Connection con, Dent[] listeDents, int reparerOuRemplacer)
+    public void newEtatDent(Connection con)
     throws Exception {
-        if(listeDents!=null) {
-            boolean jAiOuvert=false;
-            if(con==null) {
-                jAiOuvert=true;
-                con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        }
+        PreparedStatement preparedStatement=null;
+        try {
+            Consultation consultation=Consultation.getLastConsultation(con);
+            String sql="insert into consultation_traitement(id_consultation, numero_dent, niveau_etat_dent) values(?, ?, ?)";
+            preparedStatement=con.prepareStatement(sql);
+            for(int i=0; i<this.getListeDents().length; i++) {
+                preparedStatement.setInt(1, Integer.valueOf(consultation.getIdConsultation()));
+                preparedStatement.setInt(2, listeDents[i].getNumeroDent());
+                preparedStatement.setInt(3, listeDents[i].getEtat().getNiveauEtatDent());
+                preparedStatement.addBatch();
             }
-            PreparedStatement preparedStatement=null;
-            try {
-                Consultation lastConsultation=Consultation.getLastConsultation(con);
-                if(lastConsultation==null) {
-                    throw new Exception("Veuillez d'abord faire une consultation");
-                }
-                String tableName="";
-                if(reparerOuRemplacer==11) {
-                    tableName="reparation";
-                } else {
-                    tableName="remplacement";
-                }
-                String sql="insert into "+tableName+"(id_consultation, numero_dent) values(?, ?)";
-                preparedStatement=con.prepareStatement(sql);
-                for(int i=0; i<listeDents.length; i++) {
-                    preparedStatement.setInt(1, Integer.valueOf(lastConsultation.getIdConsultation()));
-                    preparedStatement.setInt(2, listeDents[i].getNumeroDent());
-                    preparedStatement.addBatch();
-                }
-                preparedStatement.executeBatch();
-            } catch (Exception e) {
-                throw e;
-            } finally {
-                if(preparedStatement!=null) {
-                    preparedStatement.close();
-                }
-                if(jAiOuvert) {
-                    con.close();
-                }
+            preparedStatement.executeBatch();
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(preparedStatement!=null) {
+                preparedStatement.close();
+            }
+            if(jAiOuvert) {
+                con.close();
             }
         }
     }
@@ -253,8 +377,7 @@ public class Consultation {
         }
         try {
             this.newConsultationTable(con);
-            Consultation.newReparationAndRemplacementConsultation(con, this.getDentAReparer(), 11);
-            Consultation.newReparationAndRemplacementConsultation(con, this.getDentARemplacer(), 21);
+            this.newEtatDent(con);
         } catch (Exception e) {
             throw e;
         } finally {
@@ -262,149 +385,6 @@ public class Consultation {
                 con.close();
             }
         }
-    }
-
-    public Dent[] getOrdreDeTraitement(Connection con)
-    throws Exception {
-        Dent[] result=new Dent[this.getDentARemplacer().length+this.getDentAReparer().length];
-        boolean jAiOuvert=false;
-        if(con==null) {
-            jAiOuvert=true;
-            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
-        }
-        try {
-            Dent[] priorites=this.getChoix().getPriorite(con);
-            int k=0;
-            for(int i=0; i<priorites.length; i++) {
-                if(this.getDentAReparer()!=null) {
-                    for(int j=0; j<this.getDentAReparer().length; j++) {
-                        if(this.getDentAReparer()[j].getNumeroDent()==priorites[i].getNumeroDent()) {
-                            result[k]=this.getDentAReparer()[j];
-                            k++;
-                        }
-                    }
-                }
-                if(this.getDentARemplacer()!=null) {
-                    for(int j=0; j<this.getDentARemplacer().length; j++) {
-                        if(this.getDentARemplacer()[j].getNumeroDent()==priorites[i].getNumeroDent()) {
-                            result[k]=this.getDentARemplacer()[j];
-                            k++;
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if(jAiOuvert) {
-                con.close();
-            }
-        }
-        return result;
-    }
-
-    public Dent[] getDentTraitable(Connection con)
-    throws Exception {
-        boolean jAiOuvert=false;
-        if(con==null) {
-            jAiOuvert=true;
-            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
-        }
-        Dent[] result=null;
-        try {
-            result=this.getOrdreDeTraitement(con);
-            double budget=this.getBudgetPersonne();
-            for(int i=0; i<result.length; i++) {
-                if(result[i].getCoutTraitement()<budget) {
-                    budget-=result[i].getCoutTraitement();
-                } else {
-                    result[i]=null;
-                }
-            }
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if(jAiOuvert) {
-                con.close();
-            }
-        }
-        return result;
-    }
-
-    public double getCoutTotalTraitement(Connection con)
-    throws Exception {
-        double result=0;
-        boolean jAiOuvert=false;
-        if(con==null) {
-            jAiOuvert=true;
-            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
-        }
-        try {
-            Dent[] traitable=this.getDentTraitable(con);
-            result=Dent.getCoutTotalTabDent(traitable);
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if(jAiOuvert) {
-                con.close();
-            }
-        }
-        return result;
-    }
-
-    public double getResteBudget(Connection con)
-    throws Exception {
-        double result=0;
-        boolean jAiOuvert=false;
-        if(con==null) {
-            jAiOuvert=true;
-            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
-        }
-        try {
-            double coutTotal=this.getCoutTotalTraitement(con);
-            result=this.getBudgetPersonne()-coutTotal;
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if(jAiOuvert) {
-                con.close();
-            }
-        }
-        return result;
-    }
-
-    public static Consultation getConsultationById(Connection con, String valueId)
-    throws Exception {
-        Consultation result=null;
-        boolean jAiOuvert=false;
-        if(con==null) {
-            jAiOuvert=true;
-            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
-        }
-        PreparedStatement preparedStatement=null;
-        ResultSet resultSet=null;
-        try {
-            String sql="select*from consultation where id_consultation=?";
-            preparedStatement=con.prepareStatement(sql);
-            preparedStatement.setInt(1, Integer.valueOf(valueId));
-            resultSet=preparedStatement.executeQuery();
-            while(resultSet.next()) {
-                result=new Consultation(resultSet.getString("id_consultation"), (TypeSoin) BddObject.findById(con, TypeSoin.class, resultSet.getString("id_type_soin"), "postgres", "AnaTaf37", "nify"), (Personne) BddObject.findById(con, Personne.class, resultSet.getString("id_personne"), "postgres", "AnaTaf37", "nify"), resultSet.getTimestamp("date_consultation"), Consultation.getListeDentATraiterByIdConsultation(con, resultSet.getString("id_consultation"), 11), Consultation.getListeDentATraiterByIdConsultation(con, resultSet.getString("id_consultation"), 21), resultSet.getDouble("budget_personne"), resultSet.getInt("etat_consultation"));
-            }
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if(preparedStatement!=null) {
-                preparedStatement.close();
-            }
-            if(resultSet!=null) {
-                resultSet.close();
-            }
-            if(jAiOuvert) {
-                con.close();
-            }
-        }
-        return result;
     }
 
     public void terminerConsultation(Connection con)
@@ -432,44 +412,36 @@ public class Consultation {
         }
     }
 
-    public Traitement[] getAllTraitementOfConsultation(Connection con)
-    throws Exception {
-        return null;
+    public Dent[] getListeDents() {
+        return listeDents;
     }
 
-    public static int countListeDentATraiterByIdConsultation(Connection con, String idConsultation, int reparerOuRemplacer)
+    public void setListeDents(Dent[] listeDents) {
+        this.listeDents = listeDents;
+    }
+
+    public Dent[] ordonnerDentTraiter(Connection con)
     throws Exception {
-        int result=0;
+        Dent[] result=new Dent[this.getListeDents().length];
         boolean jAiOuvert=false;
         if(con==null) {
             jAiOuvert=true;
             con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
         }
-        PreparedStatement preparedStatement=null;
-        ResultSet resultSet=null;
+        int k=0;
         try {
-            String tableName=null;
-            if(reparerOuRemplacer==11) {
-                tableName="v_dent_reparation";
-            } else {
-                tableName="v_dent_remplacement";
-            }
-            String sql="select count(*) as nb from "+tableName+" where id_consultation=?";
-            preparedStatement=con.prepareStatement(sql);
-            preparedStatement.setInt(1, Integer.valueOf(idConsultation));
-            resultSet=preparedStatement.executeQuery();
-            while(resultSet.next()) {
-                result=resultSet.getInt("nb");
+            Dent[] priorites=this.getChoix().getPriorite(con);
+            for(int i=0; i<priorites.length; i++) {
+                for(int j=0; j<this.getListeDents().length; j++) {
+                    if(priorites[i].getNumeroDent()==this.getListeDents()[j].getNumeroDent()) {
+                        result[k]=this.getListeDents()[j];
+                        k++;
+                    }
+                }
             }
         } catch (Exception e) {
             throw e;
         } finally {
-            if(preparedStatement!=null) {
-                preparedStatement.close();
-            }
-            if(resultSet!=null) {
-                resultSet.close();
-            }
             if(jAiOuvert) {
                 con.close();
             }
@@ -477,7 +449,7 @@ public class Consultation {
         return result;
     }
 
-    public static Dent[] getListeDentATraiterByIdConsultation(Connection con, String idConsultation, int reparerOuRemplacer)
+    public Dent[] getListeTraitable(Connection con)
     throws Exception {
         Dent[] result=null;
         boolean jAiOuvert=false;
@@ -485,34 +457,19 @@ public class Consultation {
             jAiOuvert=true;
             con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
         }
-        result=new Dent[Consultation.countListeDentATraiterByIdConsultation(con, idConsultation, reparerOuRemplacer)];
-        PreparedStatement preparedStatement=null;
-        ResultSet resultSet=null;
         try {
-            String tableName=null;
-            if(reparerOuRemplacer==11) {
-                tableName="v_dent_reparation";
-            } else {
-                tableName="v_dent_remplacement";
-            }
-            String sql="select*from "+tableName+" where id_consultation=?";
-            preparedStatement=con.prepareStatement(sql);
-            preparedStatement.setInt(1, Integer.valueOf(idConsultation));
-            resultSet=preparedStatement.executeQuery();
-            int i=0;
-            while(resultSet.next()) {
-                result[i]=new Dent(resultSet.getInt("numero_dent"), resultSet.getString("nom_dent"), resultSet.getDouble("cout_reparation"), resultSet.getDouble("cout_remplacement"), reparerOuRemplacer);
-                i++;
+            result=this.ordonnerDentTraiter(con);
+            double budget=this.getBudgetPersonne();
+            for(int i=0; i<result.length; i++) {
+                if(result[i].getCoutTotalTraitement(con)>budget) {
+                    result[i]=null;
+                } else {
+                    budget-=result[i].getCoutTotalTraitement(con);
+                }
             }
         } catch (Exception e) {
             throw e;
         } finally {
-            if(preparedStatement!=null) {
-                preparedStatement.close();
-            }
-            if(resultSet!=null) {
-                resultSet.close();
-            }
             if(jAiOuvert) {
                 con.close();
             }
@@ -520,22 +477,30 @@ public class Consultation {
         return result;
     }
 
-    public boolean estATraiter(Dent dent) {
-        if(this.getDentAReparer()!=null) {
-            for(int i=0; i<this.getDentAReparer().length; i++) {
-                if(dent.getNumeroDent()==this.getDentAReparer()[i].getNumeroDent()) {
-                    return true;
+    public Dent getCorrespondingDent(Connection con, int numeroDent)
+    throws Exception {
+        Dent result=null;
+        boolean jAiOuvert=false;
+        if(con==null) {
+            jAiOuvert=true;
+            con=ConnexionBdd.connexionPostgress("postgres", "AnaTaf37", "nify");
+        }
+        try {
+            Dent[] listeProposition=this.getListeTraitable(con);
+            for(int i=0; i<listeProposition.length; i++) {
+                if(listeProposition[i]!=null&&listeProposition[i].getNumeroDent()==numeroDent) {
+                    result=listeProposition[i];
+                    result.setEtat(listeProposition[i].getEtat());
                 }
             }
-        }
-        if(this.getDentARemplacer()!=null) {
-            for(int i=0; i<this.getDentARemplacer().length; i++) {
-                if(dent.getNumeroDent()==this.getDentARemplacer()[i].getNumeroDent()) {
-                    return true;
-                }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(jAiOuvert) {
+                con.close();
             }
         }
-        return false;
+        return result;
     }
 }
 
